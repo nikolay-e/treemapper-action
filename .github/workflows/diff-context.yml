@@ -1,0 +1,67 @@
+name: Diff Context
+
+on:
+  workflow_call:
+    inputs:
+      budget:
+        description: 'Token budget for output'
+        type: string
+        default: '50000'
+      format:
+        description: 'Output format: yaml, json, txt, md'
+        type: string
+        default: 'yaml'
+    outputs:
+      fragment-count:
+        description: 'Number of code fragments'
+        value: ${{ jobs.extract.outputs.fragment-count }}
+      token-count:
+        description: 'Approximate token count'
+        value: ${{ jobs.extract.outputs.token-count }}
+      size:
+        description: 'Size of the output'
+        value: ${{ jobs.extract.outputs.size }}
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    outputs:
+      fragment-count: ${{ steps.context.outputs.fragment-count }}
+      token-count: ${{ steps.context.outputs.token-count }}
+      size: ${{ steps.context.outputs.size }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract diff context
+        id: context
+        uses: nikolay-e/treemapper-action@v1
+        with:
+          budget: ${{ inputs.budget }}
+          format: ${{ inputs.format }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        id: artifact
+        with:
+          name: diff-context
+          path: ${{ steps.context.outputs.context-file }}
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: treemapper
+          message: |
+            ## Diff Context
+
+            | Metric | Value |
+            |--------|-------|
+            | Fragments | ${{ steps.context.outputs.fragment-count }} |
+            | Tokens | ~${{ steps.context.outputs.token-count }} |
+            | Size | ${{ steps.context.outputs.size }} |
+
+            [Download context](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ steps.artifact.outputs.artifact-id }})
+
+            Use this context for AI code review with ChatGPT, Claude, or other LLMs.

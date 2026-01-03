@@ -28,49 +28,52 @@ Create `.github/workflows/diff-context.yml`:
 
 ```yaml
 name: Diff Context
-on:
-  pull_request:
-    types: [opened, synchronize]
+on: [pull_request]
 
 permissions:
   contents: read
   pull-requests: write
 
 jobs:
-  extract-context:
+  diff:
+    uses: nikolay-e/treemapper-action/.github/workflows/diff-context.yml@v1
+```
+
+That's it! This will:
+- Extract smart diff context on every PR
+- Upload artifact with the context
+- Add a comment with download link
+
+### Custom Configuration
+
+For more control, use the action directly:
+
+```yaml
+name: Diff Context
+on: [pull_request]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  extract:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Extract diff context
+      - uses: nikolay-e/treemapper-action@v1
         id: context
-        uses: nikolay-e/treemapper-action@v1
+        with:
+          budget: '30000'
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        id: artifact
+      - uses: actions/upload-artifact@v4
         with:
           name: diff-context
           path: ${{ steps.context.outputs.context-file }}
-
-      - name: Comment on PR
-        uses: marocchino/sticky-pull-request-comment@v2
-        with:
-          header: treemapper
-          message: |
-            ## Diff Context
-
-            | Metric | Value |
-            |--------|-------|
-            | Fragments | ${{ steps.context.outputs.fragment-count }} |
-            | Tokens | ~${{ steps.context.outputs.token-count }} |
-
-            [Download context](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ steps.artifact.outputs.artifact-id }})
 ```
-
-**Zero configuration needed!** The action automatically detects the diff range from PR events.
 
 ## Inputs
 
@@ -103,6 +106,7 @@ When `diff-range` is not specified, the action automatically detects it:
 | `context-file` | Path to the context output file |
 | `fragment-count` | Number of code fragments extracted |
 | `token-count` | Approximate token count of output |
+| `size` | Size of the output file |
 
 ## Examples
 
