@@ -61,7 +61,7 @@ def main():
     if git_config_result.returncode != 0:
         print(f"::warning::Failed to set safe.directory: {git_config_result.stderr}")
 
-    output_file = f"/tmp/treemapper-context.{output_format}"
+    output_file = f"{workspace}/treemapper-context.{output_format}"
 
     cmd = [
         "treemapper",
