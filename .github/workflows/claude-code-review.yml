@@ -127,6 +127,7 @@ jobs:
       - name: Check diff size
         if: steps.check.outputs.skip != 'true'
         env:
+          GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           MAX_LINES: ${{ inputs.max_diff_lines }}
         run: |
