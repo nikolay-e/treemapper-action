@@ -155,20 +155,11 @@ jobs:
           claude_args: >-
             --max-turns ${{ inputs.max_turns }}
             ${{ inputs.model && format('--model {0}', inputs.model) || '' }}
-          settings: |
-            {
-              "permissions": {
-                "allow": [
-                  "Read",
-                  "Glob",
-                  "Grep",
-                  "Bash(gh pr diff *)",
-                  "Bash(gh pr view *)",
-                  "Bash(GH_TOKEN=* gh issue create --repo nikolay-e/treemapper *)"
-                ]
-              }
-            }
+            --allowedTools "Read,Glob,Grep,mcp__github_inline_comment__create_inline_comment,Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr comment:*),Bash(GH_TOKEN=* gh issue create --repo nikolay-e/treemapper *)"
           prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
             Review this PR using TreeMapper-enhanced context.
 
             ## Step 1: Read TreeMapper Context
@@ -198,7 +189,14 @@ jobs:
             Only report genuine issues. No style nitpicks.
             If the code is clean, say so briefly.
 
-            ## Step 4: TreeMapper Quality
+            ## Step 4: Post Review
+            Post your review as a PR comment using:
+              gh pr comment ${{ github.event.pull_request.number }} --body "<your review>"
+
+            For specific code issues, use inline comments:
+              mcp__github_inline_comment__create_inline_comment
+
+            ## Step 5: TreeMapper Quality
             Evaluate context quality — relevant fragments included?
             Excessive noise? Missing critical files?
 
