@@ -200,17 +200,16 @@ jobs:
             Evaluate context quality — relevant fragments included?
             Excessive noise? Missing critical files?
 
-            If significant TreeMapper issues found, file a GitHub issue
-            by running this command directly (do NOT check or echo the
-            env var first — just run the command as-is):
-              GH_TOKEN=$TREEMAPPER_PAT gh issue create
-                --repo nikolay-e/treemapper
-                --title "Context quality: <description>"
-                --body "<details>"
-              Include this PR link in the body:
-              ${{ github.event.pull_request.html_url }}
+            If significant TreeMapper issues found, file a GitHub issue.
+            IMPORTANT constraints for the gh issue create command:
+            - Use ONLY --body "short text" (under 300 chars), no heredocs
+            - Do NOT use $(cat ...), temp files, or --body-file
+            - Do NOT use Write or cat commands — they are not available
+            - Run the command exactly as shown, in a single line:
+              GH_TOKEN=$TREEMAPPER_PAT gh issue create --repo nikolay-e/treemapper --title "Context quality: <short description>" --body "PR: ${{ github.event.pull_request.html_url }} — <brief summary of the issue>"
 
             If the command fails, note issues in your review instead.
+            Do NOT retry with different approaches — just move on.
 
             ## Additional Instructions (from caller)
             ${{ inputs.review_prompt }}
